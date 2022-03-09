@@ -79,6 +79,22 @@ class Predictor(object):
         print("viz time: {:.3f}s".format(time.time() - time1))
         return result_img
 
+    # output format: class name, confidence, x, y, w, h
+    def visualize_ym(self, dets, meta, class_names, score_thres, wait=0):
+        all_box = []
+        for label in dets:
+            for bbox in dets[label]:
+                score = bbox[-1]
+                if score >= score_thres and label == 0:
+                    x0, y0, x1, y1 = [int(i) for i in bbox[:4]]
+                    all_box.append([class_names[label], score, x0, y0, x1-x0, y1-y0])
+        return all_box
+        
+    def save_ym(self, path, bbox):
+        with open(path, 'wt') as f:
+            for box in bbox:
+                f.write(' '.join([str(a) for a in box])+'\n')
+
 
 def get_image_list(path):
     image_names = []
@@ -110,14 +126,18 @@ def main():
         files.sort()
         for image_name in files:
             meta, res = predictor.inference(image_name)
-            result_image = predictor.visualize(res[0], meta, cfg.class_names, 0.35)
+            #result_image = predictor.visualize(res[0], meta, cfg.class_names, 0.35)
+            result_bbox = predictor.visualize_ym(res[0], meta, cfg.class_names, 0.1)
             if args.save_result:
                 save_folder = os.path.join(
                     cfg.save_dir, time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
                 )
                 mkdir(local_rank, save_folder)
-                save_file_name = os.path.join(save_folder, os.path.basename(image_name))
-                cv2.imwrite(save_file_name, result_image)
+                #save_file_name = os.path.join(save_folder, os.path.basename(image_name))
+                #cv2.imwrite(save_file_name, result_image)
+                save_file_name = os.path.join(save_folder, os.path.basename(image_name).replace('jpg', 'txt'))
+                predictor.save_ym(save_file_name, result_bbox)
+                
             ch = cv2.waitKey(0)
             if ch == 27 or ch == ord("q") or ch == ord("Q"):
                 break
