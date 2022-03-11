@@ -1,3 +1,9 @@
+# Modification
+. Add output text file for further map check.
+```
+python demo/demo.py image --config config/nanodet-plus-m-1.5x_416.yml --model nanodet-plus-m-1.5x_416_checkpoint.ckpt --path /path/to/image/folder
+```
+
 <div align="center">
 
 <img src="docs/imgs/Title.jpg" />
